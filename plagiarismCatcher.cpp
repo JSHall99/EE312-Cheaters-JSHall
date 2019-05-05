@@ -18,7 +18,6 @@
 #include <errno.h>
 #include <fstream>
 #include <iostream>
-#include <queue>
 #include <stdlib.h>
 #include <string>
 #include <vector>
@@ -55,44 +54,52 @@ int getdir (string dir, vector<string> &files)
 int getChunks(string fileName, int chunkSize)
 {
     ifstream file;
-    file.open(fileName);
-    queue<string> words;
+    file.open(fileName.c_str());
+    vector<string> wordQueue;
+
+    int count = 0;
+    bool done = false;
 
     // Populate the queue with the first [chunkSize] words in the
     // file.  If there are less than that many words in the file,
     // do nothing and return.
     string nextWord;
-    for (int i = 0; i < chunkSize; i++) {
-        if (file.eof()) return 0;
+    for (int i = 0; i < chunkSize && !done; i++) {
+        if (file.eof()) done = true;
         else {
             file >> nextWord;
-            words.push(nextWord);
+            wordQueue.push_back(nextWord);
         }
     }
 
-    int count = 0;
-    while (1) {
+    while (!done) {
         count++;
 
-        string concat = "";
-        for (int i = 0; i < words.size(); i++) {
-            concat += words[i];
-        }
+        // Concatenate the words in the queue into one string for the input
+        // to the hash function
+        string key = "";        
+        for (vector<string>::iterator i = wordQueue.begin();
+            i < wordQueue.end(); i++) {
 
-        // For testing
-        cout << concat << endl;
+            key += *i;
+        }
+        
+        // TESTING - Output the key
+        cout << count << " - " << key << endl;
 
         // Get the next chunk by adding the next word from the file to
         // the end of the queue and removing the word at the front of
         // the queue.
         file >> nextWord;
-
-        // If the end of file has been reached, we are done.
-        if (nextWord == EOF) return count;
-
-        words.push(nextWord);
-        words.pop();
+        if (file.eof()) done = true;
+        else {
+            wordQueue.push_back(nextWord);
+            wordQueue.erase(wordQueue.begin());
+        }
     }
+
+    file.close();
+    return count;
 }
 
 int main(int argc, char **argv)
@@ -119,8 +126,7 @@ int main(int argc, char **argv)
     }
 
     //string dir = string("sm_doc_set");
-    vector<string> files = vector<string>();
-
+    vector<string> files;
     getdir(dir,files);
 
 /*
@@ -129,7 +135,17 @@ int main(int argc, char **argv)
     }
 */
 
-    cout << getChunks("abf0704.txt", chunkSize);
+    int totalChunks = 0;
+    for (vector<string>::iterator i = files.begin();
+        i < files.end(); i++) {
+
+        string nextFile = dir + "/" + *i;
+        totalChunks += getChunks(nextFile, chunkSize);
+    }
+
+    cout << endl;
+    cout << "TOTAL CHUNKS: " << totalChunks << endl;
+
     return 0;
 }
 
