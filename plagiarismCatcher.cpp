@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "hashTable.h"
+
 using namespace std;
 
 // Given a directory name [dir], this function creates a vector [files]
@@ -53,7 +55,7 @@ int getdir (string dir, vector<string> &files)
 // [fileName], returning the number of chunks found.  [fileNo] is the
 // index of the current file, which is needed for hash table entries to
 // count collisions.
-int getChunks(string fileName, int fileNo, int chunkSize)
+int getChunks(string fileName, int fileNo, int chunkSize, HashTable &h)
 {
     ifstream file;
     file.open(fileName.c_str());
@@ -90,7 +92,7 @@ int getChunks(string fileName, int fileNo, int chunkSize)
         // cout << count << " - " << key << endl;
         
         // Add this key to the hash table
-
+        h.addEntry(key, fileNo);
 
         // Get the next chunk by adding the next word from the file to
         // the end of the queue and removing the word at the front of
@@ -140,6 +142,7 @@ int main(int argc, char **argv)
     }
 */
 
+    HashTable h;
     int totalChunks = 0;
     int fileNo = 0;
     for (vector<string>::iterator i = files.begin();
@@ -152,12 +155,24 @@ int main(int argc, char **argv)
         }
         nextFile += *i;
 
-        totalChunks += getChunks(nextFile, fileNo, chunkSize);
+        totalChunks += getChunks(nextFile, fileNo, chunkSize, h);
         fileNo++;
     }
 
+/*
     cout << endl;
     cout << "TOTAL CHUNKS: " << totalChunks << endl;
+*/
+
+    // TESTING - Output counts of all collisions
+    cout << endl;
+    cout << "COLLISIONS" << endl;
+    for (int i = 0; i < files.size(); i++) {
+        for (int j = i+1; j < files.size(); j++) {
+            cout << "(" << files[i] << ", " << files[j] << ") - ";
+            cout << h.collisions(i, j) << endl;
+        }
+    }
 
     return 0;
 }
