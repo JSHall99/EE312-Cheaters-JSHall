@@ -10,7 +10,7 @@ HashTable::HashTable()
 {
    // I chose 1608433 because it is a prime number, and the program counted
    // 1608418 six-letter chunks in the large file set.
-   tableSize = 1608433;
+   tableSize = 100003;
    table = new tableNode* [tableSize];
    for (int i = 0; i < tableSize; i++) {
       table[i] = NULL;
@@ -23,7 +23,7 @@ HashTable::~HashTable()
       // Delete each node of the linked list
       deleteList(table[i]);
    }
-   delete table;
+   delete[] table;
 }
 
 void HashTable::deleteList(tableNode *node)

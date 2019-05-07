@@ -5,16 +5,21 @@
 // how many instances there are of identical chunks of words.
 //
 // Call using the following form:
-// 	./plagiarismCatcher [directory] [chunkSize] [threshold]
+// 	./catcher [directory] [chunkSize] [threshold]
 // [directory] is the location of files to check
 // [chunkSize] is the number of consecutive words to compare
 // [threshold] is the minimum number of matches to flag as plagiarism
 //
 // Example call:
 // 	./plagiarismCatcher path/to/text/files 6 200
+// 
+// Or, can use
+//	./catcher [directory]
+// and go with default settings for chunkSize and threshold.
 
 #include <sys/types.h>
 #include <algorithm> // For sort()
+#include <ctime> // For timing program execution time
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
@@ -38,23 +43,6 @@ public:
     {
         return (collisions < rhs.collisions);
     }
-/*
-    bool operator<=(Record const &rhs) {
-        return collisions <= rhs.collisions;
-    }
-    bool operator>(Record const &rhs) {
-        return collisions > rhs.collisions;
-    }
-    bool operator>=(Record const &rhs) {
-        return collisions >= rhs.collisions;
-    }
-    bool operator==(Record const &rhs) {
-        return collisions == rhs.collisions;
-    }
-    bool operator!=(Record const &rhs) {
-        return collisions != rhs.collisions;
-    }
-*/
 };
 
 // Given a directory name [dir], this function creates a vector [files]
@@ -140,8 +128,15 @@ int getChunks(string fileName, int fileNo, int chunkSize, HashTable &h)
     return count;
 }
 
+double elapsedTime(clock_t startTime, clock_t endTime)
+{
+    return (double)(endTime - startTime) / CLOCKS_PER_SEC;
+}
+
 int main(int argc, char **argv)
 {
+    clock_t overallStartTime = clock();
+
     string dir;
     int chunkSize;
     int threshold;
@@ -150,6 +145,11 @@ int main(int argc, char **argv)
     // chunk size, and 200 as the threshold.
     if (argc == 1) {
         dir = "sm_doc_set";
+        chunkSize = 6;
+        threshold = 200;
+    }
+    else if (argc == 2) {
+        dir = string(argv[1]);
         chunkSize = 6;
         threshold = 200;
     }
@@ -173,6 +173,8 @@ int main(int argc, char **argv)
     }
 */
 
+    clock_t hashStartTime = clock();
+
     HashTable h;
     int totalChunks = 0;
     int fileNo = 0;
@@ -189,6 +191,8 @@ int main(int argc, char **argv)
         totalChunks += getChunks(nextFile, fileNo, chunkSize, h);
         fileNo++;
     }
+
+    clock_t hashEndTime = clock();
 
 /*
     cout << endl;
@@ -207,6 +211,7 @@ int main(int argc, char **argv)
     }
 */
 
+    clock_t countCollisionsStartTime = clock();
     vector<Record> results;
 
     // Push all pairs of files that exceed collision threshold into
@@ -225,6 +230,8 @@ int main(int argc, char **argv)
         }
     }
 
+    clock_t countCollisionsEndTime = clock();
+
     // Compare using operator<
     sort(results.begin(), results.end());
 
@@ -235,6 +242,19 @@ int main(int argc, char **argv)
         cout << i->collisions << ": ";
         cout << i->file1 << " " << i->file2 << endl;
     }
+
+    clock_t overallEndTime = clock();
+
+    cout << endl;
+    cout << "Populate hash table: ";
+    cout << elapsedTime(hashStartTime, hashEndTime);
+    cout << " s" << endl;
+    cout << "Count collisions: ";
+    cout << elapsedTime(countCollisionsStartTime, countCollisionsEndTime);
+    cout << " s" << endl;
+    cout << "Total time: ";
+    cout << elapsedTime(overallStartTime, overallEndTime);
+    cout << " s" << endl;
 
     return 0;
 }
