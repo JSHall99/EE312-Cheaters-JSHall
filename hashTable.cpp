@@ -3,27 +3,51 @@
 // Date:   5/4/19
 
 #include "hashTable.h"
+#include <iostream>
 
 using namespace std;
 
-HashTable::HashTable()
+HashTable::HashTable(int numFiles)
 {
-   // I chose 1608433 because it is a prime number, and the program counted
-   // 1608418 six-letter chunks in the large file set.
-   tableSize = 100003;
+   // Allocate hash table
+   tableSize = 1608433;
    table = new tableNode* [tableSize];
    for (int i = 0; i < tableSize; i++) {
       table[i] = NULL;
    }
+
+   // Allocate collisions table
+   this->numFiles = numFiles;
+   collisionsTable = new int* [numFiles];
+   for (int i = 0; i < numFiles; i++) {
+      collisionsTable[i] = new int[numFiles];
+      for (int j = 0; j < numFiles; j++) {
+         collisionsTable[i][j] = 0;
+      }
+   }
+}
+
+HashTable::HashTable()
+{
+   // Default - 
+   HashTable(1000);
+   cout << "WARNING: HashTable default constructor called" << endl;
 }
 
 HashTable::~HashTable()
 {
+   // Deallocate hash table
    for (int i = 0; i < tableSize; i++) {
       // Delete each node of the linked list
       deleteList(table[i]);
    }
    delete[] table;
+
+   // Deallocate collision table
+   for (int i = 0; i < numFiles; i++) {
+      delete[] collisionsTable[i];
+   }
+   delete[] collisionsTable;
 }
 
 void HashTable::deleteList(tableNode *node)
@@ -43,10 +67,20 @@ void HashTable::addEntry(string words, int fileNo)
    nextNode->fileNo = fileNo;
    nextNode->next = table[hashIndex];
    table[hashIndex] = nextNode;  
+
+   // Update collision table
+   nextNode = nextNode->next;
+   while (nextNode != NULL) {
+      collisionsTable[nextNode->fileNo][fileNo]++;
+      collisionsTable[fileNo][nextNode->fileNo]++;
+      nextNode = nextNode->next;
+   }
+   
 }
 
 int HashTable::collisions(int fileNo1, int fileNo2)
 {
+/*
    int count = 0;
    for (int i = 0; i < tableSize; i++) {
       
@@ -60,6 +94,9 @@ int HashTable::collisions(int fileNo1, int fileNo2)
    }
 
    return count;
+*/
+
+   return collisionsTable[fileNo1][fileNo2];
 }
 
 bool HashTable::listContains(int fileNo, tableNode *head)

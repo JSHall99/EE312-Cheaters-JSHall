@@ -5,7 +5,7 @@
 // how many instances there are of identical chunks of words.
 //
 // Call using the following form:
-// 	./catcher [directory] [chunkSize] [threshold]
+// 	./plagiarismCatcher [directory] [chunkSize] [threshold]
 // [directory] is the location of files to check
 // [chunkSize] is the number of consecutive words to compare
 // [threshold] is the minimum number of matches to flag as plagiarism
@@ -14,8 +14,8 @@
 // 	./plagiarismCatcher path/to/text/files 6 200
 // 
 // Or, can use
-//	./catcher [directory]
-// and go with default settings for chunkSize and threshold.
+//	./plagiarismCatcher [directory]
+// and use default settings for chunkSize and threshold.
 
 #include <sys/types.h>
 #include <algorithm> // For sort()
@@ -128,6 +128,8 @@ int getChunks(string fileName, int fileNo, int chunkSize, HashTable &h)
     return count;
 }
 
+// Returns the elapsed time, in seconds.  (For measuring the program
+// execution time.)
 double elapsedTime(clock_t startTime, clock_t endTime)
 {
     return (double)(endTime - startTime) / CLOCKS_PER_SEC;
@@ -173,9 +175,9 @@ int main(int argc, char **argv)
     }
 */
 
-    clock_t hashStartTime = clock();
+//    clock_t hashStartTime = clock();
 
-    HashTable h;
+    HashTable h(files.size());
     int totalChunks = 0;
     int fileNo = 0;
     for (vector<string>::iterator i = files.begin();
@@ -192,7 +194,7 @@ int main(int argc, char **argv)
         fileNo++;
     }
 
-    clock_t hashEndTime = clock();
+//    clock_t hashEndTime = clock();
 
 /*
     cout << endl;
@@ -211,7 +213,7 @@ int main(int argc, char **argv)
     }
 */
 
-    clock_t countCollisionsStartTime = clock();
+//    clock_t countCollisionsStartTime = clock();
     vector<Record> results;
 
     // Push all pairs of files that exceed collision threshold into
@@ -230,7 +232,7 @@ int main(int argc, char **argv)
         }
     }
 
-    clock_t countCollisionsEndTime = clock();
+//    clock_t countCollisionsEndTime = clock();
 
     // Compare using operator<
     sort(results.begin(), results.end());
@@ -246,12 +248,14 @@ int main(int argc, char **argv)
     clock_t overallEndTime = clock();
 
     cout << endl;
+/*
     cout << "Populate hash table: ";
     cout << elapsedTime(hashStartTime, hashEndTime);
     cout << " s" << endl;
     cout << "Count collisions: ";
     cout << elapsedTime(countCollisionsStartTime, countCollisionsEndTime);
     cout << " s" << endl;
+*/
     cout << "Total time: ";
     cout << elapsedTime(overallStartTime, overallEndTime);
     cout << " s" << endl;

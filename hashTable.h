@@ -13,9 +13,11 @@ using namespace std;
 class HashTable
 {
 public:
+   HashTable(int numFiles);
+
    HashTable();
 
-   // Need to deallocate all table nodes
+   // Need to deallocate all table nodes and the collision table
    ~HashTable();
 
    // Function: addEntry
@@ -25,14 +27,15 @@ public:
 
    // Function: collisions
    // Returns the number of collisions between the files with indexes
-   // [fileNo1] and [fileNo2].  This is the number of hash values that both
-   // files had in common; in other words, if both of files hashed to the
-   // same value multiple times, that would still only add 1 to the total.
+   // [fileNo1] and [fileNo2].
    int collisions(int fileNo1, int fileNo2);
    
 private:
    // Hash table indices from 0 to (tableSize-1)
    int tableSize;
+
+   // Used for dimensions of collisionsTable.
+   int numFiles;
 
    // Each entry of the table consists of a linked list of tableNodes.
    typedef struct tableNode {
@@ -40,7 +43,14 @@ private:
       struct tableNode *next;
    } tableNode;
 
+   // Hash table
    tableNode **table;
+
+   // Table counting number of collisions between each file.
+   // collisionsTable[i][j] = # collisions b/w files No. i and j
+   // Must be dynamically allocated to have dimensions equal to the
+   // number of files.
+   int **collisionsTable;
 
    // Function: hashFn
    // Converts a string into a numerical hash value.
