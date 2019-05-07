@@ -4,6 +4,8 @@
 
 #include <hashTable.h>
 
+using namespace std;
+
 int HashTable::hashFn(string words)
 {
    // Format the string for processing.  Remove all characters besides

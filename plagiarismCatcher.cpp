@@ -50,8 +50,10 @@ int getdir (string dir, vector<string> &files)
 }
 
 // This function gets all sequences of [chunkSize] words in the file
-// [fileName], returning the number of chunks found.
-int getChunks(string fileName, int chunkSize)
+// [fileName], returning the number of chunks found.  [fileNo] is the
+// index of the current file, which is needed for hash table entries to
+// count collisions.
+int getChunks(string fileName, int fileNo, int chunkSize)
 {
     ifstream file;
     file.open(fileName.c_str());
@@ -85,7 +87,10 @@ int getChunks(string fileName, int chunkSize)
         }
         
         // TESTING - Output the key
-        cout << count << " - " << key << endl;
+        // cout << count << " - " << key << endl;
+        
+        // Add this key to the hash table
+
 
         // Get the next chunk by adding the next word from the file to
         // the end of the queue and removing the word at the front of
@@ -136,11 +141,19 @@ int main(int argc, char **argv)
 */
 
     int totalChunks = 0;
+    int fileNo = 0;
     for (vector<string>::iterator i = files.begin();
         i < files.end(); i++) {
 
-        string nextFile = dir + "/" + *i;
-        totalChunks += getChunks(nextFile, chunkSize);
+        // Append directory to beginning of file name
+        string nextFile = dir;
+        if (nextFile[nextFile.length()-1] != '/') {
+            nextFile += "/";
+        }
+        nextFile += *i;
+
+        totalChunks += getChunks(nextFile, fileNo, chunkSize);
+        fileNo++;
     }
 
     cout << endl;
