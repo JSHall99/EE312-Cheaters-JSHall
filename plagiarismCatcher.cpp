@@ -14,6 +14,7 @@
 // 	./plagiarismCatcher path/to/text/files 6 200
 
 #include <sys/types.h>
+#include <algorithm> // For sort()
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
@@ -25,6 +26,36 @@
 #include "hashTable.h"
 
 using namespace std;
+
+// Contains a collision record for file1 and file2.
+class Record
+{
+public:
+    string file1, file2;
+    int collisions;
+
+    bool operator <(Record const &rhs) const
+    {
+        return (collisions < rhs.collisions);
+    }
+/*
+    bool operator<=(Record const &rhs) {
+        return collisions <= rhs.collisions;
+    }
+    bool operator>(Record const &rhs) {
+        return collisions > rhs.collisions;
+    }
+    bool operator>=(Record const &rhs) {
+        return collisions >= rhs.collisions;
+    }
+    bool operator==(Record const &rhs) {
+        return collisions == rhs.collisions;
+    }
+    bool operator!=(Record const &rhs) {
+        return collisions != rhs.collisions;
+    }
+*/
+};
 
 // Given a directory name [dir], this function creates a vector [files]
 // of the file names in that directory.  (This function was provided as
@@ -164,6 +195,7 @@ int main(int argc, char **argv)
     cout << "TOTAL CHUNKS: " << totalChunks << endl;
 */
 
+/*
     // TESTING - Output counts of all collisions
     cout << endl;
     cout << "COLLISIONS" << endl;
@@ -172,6 +204,36 @@ int main(int argc, char **argv)
             cout << "(" << files[i] << ", " << files[j] << ") - ";
             cout << h.collisions(i, j) << endl;
         }
+    }
+*/
+
+    vector<Record> results;
+
+    // Push all pairs of files that exceed collision threshold into
+    // results vector
+    for (int i = 0; i < files.size(); i++) {
+        for (int j = i+1; j < files.size(); j++) {
+            int count = h.collisions(i, j);
+            if (count >= threshold) {
+                Record nextRecord;
+                nextRecord.file1 = files[i];
+                nextRecord.file2 = files[j];
+                nextRecord.collisions = count;
+
+                results.push_back(nextRecord);
+            }
+        }
+    }
+
+    // Compare using operator<
+    sort(results.begin(), results.end());
+
+    // Output highest collision counts first
+    for (vector<Record>::iterator i = results.end() - 1;
+        i >= results.begin(); i--) {
+        
+        cout << i->collisions << ": ";
+        cout << i->file1 << " " << i->file2 << endl;
     }
 
     return 0;
